@@ -1,10 +1,10 @@
 #!/bin/sh
 
-arg=$1
-
 . ./common.sh
 
 rm -f client.crt client.key
+
+arg=$1
 
 if [ "X$arg" = "X-k" ]
 then

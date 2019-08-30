@@ -7,7 +7,7 @@ rm -f root.crt
 # make the CA dir and its config file and subdirectories
 rm -rf cadir
 mkdir cadir
-dd cadir
+cd cadir
 DIR=`pwd`
 cp /etc/pki/tls/openssl.cnf .
 sed -i -e "s,^dir.*,dir = $DIR," -e 's/#unique_subject/unique_subject/' \

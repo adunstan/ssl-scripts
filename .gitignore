@@ -1,4 +1,4 @@
-cadir
-client.*
-server.*
-root.crt
+/cadir
+/*client.*
+/*server.*
+/root.crt

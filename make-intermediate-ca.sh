@@ -2,6 +2,12 @@
 
 . ./common.sh
 
+if [ ! -e cadir/private/capw.dat ]
+then
+	echo Need the root CA
+	exit 1
+fi
+
 cd cadir
 
 # we'll sign with the root CA

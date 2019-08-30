@@ -2,6 +2,12 @@
 
 . ./common.sh
 
+if [ ! -e cadir/private/icapw2.dat ]
+then
+	echo Need the leaf CA
+	exit 1
+fi
+
 rm -f server.crt server.key
 
 arg=$1

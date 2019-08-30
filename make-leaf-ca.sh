@@ -2,6 +2,12 @@
 
 . ./common.sh
 
+if [ ! -e cadir/private/icapw1.dat ]
+then
+	echo Need the intermediate CA
+	exit 1
+fi
+
 cd cadir
 
 # we'll sign with intermediate CA 1

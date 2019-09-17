@@ -31,8 +31,8 @@ cp cadir/cacert.pem root.crt
 # we'll sign this with the root CA
 capw=`cat cadir/private/capw.dat`
 
-# this will be the host in the certificate
-host="host1.foo.bar"
+# this will be the host in the certificate CN
+host=${CERTHOST:-"host1.foo.bar"}
 
 # generate the CSR
 openssl req -new -days 365 -config cadir/openssl.conf \

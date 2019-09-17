@@ -28,8 +28,7 @@ cp cadir/cacert.pem root.crt
 capw=`cat cadir/private/icapw2.dat`
 
 # these will be the hosts in the certificate
-hosts="host1.foo.bar.com host2.foo.bar.com host3.foo.bar.com"
-
+hosts=${CERTHOSTS:-"localhost foo"}
 
 # generate a temporary config file that will be used to generate the CSR
 cat > /tmp/san.cnf <<-EOF

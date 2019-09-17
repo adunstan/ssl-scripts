@@ -30,7 +30,7 @@ cp cadir/cacert.pem root.crt
 capw=`cat cadir/private/icapw2.dat`
 
 # this will be the CN of the certificate
-user=my_user
+user=${CERTUSER:-"my_user"}
 
 # generate the CSR
 openssl req -new $reqarg -text -days 365 -out client.csr \

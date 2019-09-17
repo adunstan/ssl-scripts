@@ -19,5 +19,18 @@ root CA and with a single host name (server) and no PKCS#8 key (client), as
 well as a script to generate a self-signed server certificate with a single
 host name.
 
+The Host name(s) and User name for certificates can be provided by
+environment settings like this:
+
+```
+CERTUSER=my_user_name make-client-cert.sh
+CERTUSER=my_user_name make-simple-client-cert.sh
+CERTHOST=foo.bar.com make-self-signed-server-cert.sh
+CERTHOST=foo.bar.com make-simple-server-cert.sh
+CERTHOSTS="foo.bar.com other.name.com" make-server-cert.sh
+```
+
+`CERTHOST` could also be used for a certificate with an IP address.
+
 The scripts were written to validate some commands shown in a 2019 Conference
 presentation.

@@ -147,4 +147,4 @@ pg_ctl -s -D testdb -l logfile stop
 rm -rf testdb logfile
 rm -rf cadir
 rm -f *.crt *.key *.pk8
-rm users.txt pgbouncer.log bouncer.ini 
+rm -f users.txt pgbouncer.log bouncer.ini authfunc.sql

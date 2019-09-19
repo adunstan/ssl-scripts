@@ -113,7 +113,7 @@ echo "bouncer pgbouncer pgbouncer" >> testdb/pg_ident.conf
 # note that this wipes out the list of users, no more curly
 # larry and mo. But they will still be able to connect 
 echo '"pgbouncer" ""' > users.txt
-createuser --superuser -h /tmp -p 5678 pgbouncer
+createuser -h /tmp -p 5678 pgbouncer
 
 cat > authfunc.sql <<-'EOF'
 
@@ -132,7 +132,7 @@ EOF
 psql -q -h /tmp -p 5678 -f authfunc.sql postgres
 
 echo "auth_user = pgbouncer" >> bouncer.ini
-# echo "auth_query = 'select * from auth_user_info(\$1)'" >> bouncer.ini
+echo "auth_query = select * from auth_user_info(\$1)" >> bouncer.ini
 
 pg_ctl -s -D testdb -l logfile reload
 kill `cat pgbouncer.pid`

@@ -30,6 +30,8 @@ cat >> testdb/postgresql.conf <<-EOF
 	port = 5678
 	ssl = on
 	ssl_ca_file = 'root.crt'
+	log_connections = on
+	log_statement = 'all'
 EOF
 
 cat > testdb/pg_hba.conf <<-EOF
@@ -96,12 +98,47 @@ cat > bouncer.ini <<-EOF
 	
 EOF
 
-
 pgbouncer -d bouncer.ini
 
 # the money shot (again) . If this works it's all working
 psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full sslcert=larry.crt sslkey=larry.key sslrootcert=root.crt" -c "select ssl_is_used()"
 
+
+# now set up the auth_user query
+# this means pgbouncer doesn't need to know about the
+# users at all, it gets them from the database.
+
+echo "bouncer pgbouncer pgbouncer" >> testdb/pg_ident.conf
+
+# note that this wipes out the list of users, no more curly
+# larry and mo. But they will still be able to connect 
+echo '"pgbouncer" ""' > users.txt
+createuser --superuser -h /tmp -p 5678 pgbouncer
+
+cat > authfunc.sql <<-'EOF'
+
+create or replace function auth_user_info
+	   (username in out name, password out text)
+returns record
+language sql
+security definer
+as
+$func$
+ SELECT usename, passwd FROM pg_shadow WHERE usename=$1
+$func$;
+grant execute on function auth_user_info to pgbouncer;
+EOF
+
+psql -q -h /tmp -p 5678 -f authfunc.sql postgres
+
+echo "auth_user = pgbouncer" >> bouncer.ini
+# echo "auth_query = 'select * from auth_user_info(\$1)'" >> bouncer.ini
+
+pg_ctl -s -D testdb -l logfile reload
+kill `cat pgbouncer.pid`
+pgbouncer -d bouncer.ini
+
+psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full sslcert=larry.crt sslkey=larry.key sslrootcert=root.crt" -c "select ssl_is_used()"
 
 kill `cat pgbouncer.pid`
 

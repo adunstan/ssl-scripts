@@ -49,6 +49,8 @@ psql -q -h /tmp -p 5678 -c 'create extension sslinfo' postgres
 
 
 # the money shot. If this works it's all working
+
+echo 'Direct connection to Postgres using client cert'
 psql "host=localhost port=5678 dbname=postgres user=testuser sslmode=verify-full sslcert=client.crt sslkey=client.key sslrootcert=root.crt" -c "select ssl_is_used()"
 
 # now set up for pgbouncer
@@ -101,6 +103,7 @@ EOF
 pgbouncer -d bouncer.ini
 
 # the money shot (again) . If this works it's all working
+echo 'pgbouncer connection to Postgres using client cert and named users'
 psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full sslcert=larry.crt sslkey=larry.key sslrootcert=root.crt" -c "select ssl_is_used()"
 
 
@@ -138,6 +141,7 @@ pg_ctl -s -D testdb -l logfile reload
 kill `cat pgbouncer.pid`
 pgbouncer -d bouncer.ini
 
+echo 'pgbouncer connection to Postgres using client cert and auth_query'
 psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full sslcert=larry.crt sslkey=larry.key sslrootcert=root.crt" -c "select ssl_is_used()"
 
 kill `cat pgbouncer.pid`

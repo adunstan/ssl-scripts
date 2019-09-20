@@ -11,6 +11,13 @@ expected output (twice, one for pgbouncer):
 
 EOF
 
+# clean up from previous runs
+
+rm -rf testdb logfile
+rm -rf cadir
+rm -f *.crt *.key *.pk8
+rm -f users.txt pgbouncer.log bouncer.ini authfunc.sql
+
 # adjust as necessary
 PATH=/usr/pgsql-11/bin:$PATH
 export PATH
@@ -147,8 +154,3 @@ psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full ss
 kill `cat pgbouncer.pid`
 
 pg_ctl -s -D testdb -l logfile stop
-
-rm -rf testdb logfile
-rm -rf cadir
-rm -f *.crt *.key *.pk8
-rm -f users.txt pgbouncer.log bouncer.ini authfunc.sql

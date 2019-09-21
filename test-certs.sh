@@ -18,7 +18,7 @@ EOF
 rm -rf testdb logfile
 rm -rf cadir
 rm -f *.crt *.key *.pk8
-rm -f users.txt pgbouncer.log bouncer.ini authfunc.sql
+rm -f users.txt pgbouncer.log bouncer*.ini authfunc.sql
 
 # adjust as necessary
 PATH=/usr/pgsql-11/bin:$PATH
@@ -162,6 +162,15 @@ psql -q -h /tmp -p 5678 -c "alter user larry password 'bar'" postgres
 
 sed -i "s/auth_type =.*/auth_type = $auth_method/" bouncer.ini
 sed -i 's/client_tls_sslmode.*/client_tls_sslmode = prefer/' bouncer.ini
+
+sed '/client_tls.*/d' bouncer.ini > bouncer-no-client-tls.ini
+
+pgbouncer -d bouncer-no-client-tls.ini
+
+echo "pgbouncer connection to Postgres via pgbouncer using $auth_method and auth_query, no client_tls"
+psql "host=localhost port=6543 dbname=postgres user=larry password=bar sslmode=disable" -c "select ssl_is_used()"
+
+kill `cat pgbouncer.pid`
 
 pgbouncer -d bouncer.ini
 

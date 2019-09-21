@@ -1,5 +1,7 @@
 #!/bin/sh
 
+auth_method=${1:-scram-sha-256}
+
 comment=<<EOF
 
 expected output (twice, one for pgbouncer):
@@ -39,7 +41,7 @@ cat >> testdb/postgresql.conf <<-EOF
 	ssl_ca_file = 'root.crt'
 	log_connections = on
 	log_statement = 'all'
-	password_encryption = md5
+	password_encryption = $auth_method
 EOF
 
 cat > testdb/pg_hba.conf <<-EOF
@@ -156,14 +158,14 @@ kill `cat pgbouncer.pid`
 
 psql -q -h /tmp -p 5678 -c "alter user pgbouncer password 'foo'" postgres
 psql -q -h /tmp -p 5678 -c "alter user larry password 'bar'" postgres
-psql -q -t -h /tmp -p 5678 -c 'select $$"pgbouncer" $$ || quote_ident(password) from auth_user_info($$pgbouncer$$)' postgres > users.txt
+# psql -q -t -h /tmp -p 5678 -c 'select $$"pgbouncer" $$ || quote_ident(password) from auth_user_info($$pgbouncer$$)' postgres > users.txt
 
-sed -i 's/auth_type =.*/auth_type = md5/' bouncer.ini
+sed -i "s/auth_type =.*/auth_type = $auth_method/" bouncer.ini
 sed -i 's/client_tls_sslmode.*/client_tls_sslmode = prefer/' bouncer.ini
 
 pgbouncer -d bouncer.ini
 
-echo 'pgbouncer connection to Postgres via pgbouncer using ssl + md5 and auth_query'
+echo "pgbouncer connection to Postgres via pgbouncer using ssl + $auth_method and auth_query"
 psql "host=localhost port=6543 dbname=postgres user=larry password=bar sslmode=verify-full sslrootcert=root.crt" -c "select ssl_is_used()"
 
 

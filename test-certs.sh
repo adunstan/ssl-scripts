@@ -39,6 +39,7 @@ cat >> testdb/postgresql.conf <<-EOF
 	ssl_ca_file = 'root.crt'
 	log_connections = on
 	log_statement = 'all'
+	password_encryption = md5
 EOF
 
 cat > testdb/pg_hba.conf <<-EOF
@@ -150,6 +151,21 @@ pgbouncer -d bouncer.ini
 
 echo 'pgbouncer connection to Postgres using client cert and auth_query'
 psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full sslcert=larry.crt sslkey=larry.key sslrootcert=root.crt" -c "select ssl_is_used()"
+
+kill `cat pgbouncer.pid`
+
+psql -q -h /tmp -p 5678 -c "alter user pgbouncer password 'foo'" postgres
+psql -q -h /tmp -p 5678 -c "alter user larry password 'bar'" postgres
+psql -q -t -h /tmp -p 5678 -c 'select $$"pgbouncer" $$ || quote_ident(password) from auth_user_info($$pgbouncer$$)' postgres > users.txt
+
+sed -i 's/auth_type =.*/auth_type = md5/' bouncer.ini
+sed -i 's/client_tls_sslmode.*/client_tls_sslmode = prefer/' bouncer.ini
+
+pgbouncer -d bouncer.ini
+
+echo 'pgbouncer connection to Postgres via pgbouncer using ssl + md5 and auth_query'
+psql "host=localhost port=6543 dbname=postgres user=larry password=bar sslmode=verify-full sslrootcert=root.crt" -c "select ssl_is_used()"
+
 
 kill `cat pgbouncer.pid`
 

@@ -15,6 +15,8 @@ EOF
 
 # clean up from previous runs
 
+test -e testdb/postmaster.pid && kill `head -n 1 testdb/postmaster.pid`
+test -e pgbouncer.pid && kill `cat pgbouncer.pid`
 rm -rf testdb logfile
 rm -rf cadir
 rm -f *.crt *.key *.pk8
@@ -37,6 +39,7 @@ initdb -A trust testdb > /dev/null
 cat >> testdb/postgresql.conf <<-EOF
 	unix_socket_directories = '/tmp'
 	port = 5678
+	listen_addresses = '*'
 	ssl = on
 	ssl_ca_file = 'root.crt'
 	log_connections = on
@@ -56,6 +59,7 @@ pg_ctl -s -D testdb -l logfile start
 
 createuser -h /tmp -p 5678 testuser
 psql -q -h /tmp -p 5678 -c 'create extension sslinfo' postgres
+
 
 
 # the money shot. If this works it's all working
@@ -112,6 +116,8 @@ EOF
 
 pgbouncer -d bouncer.ini
 
+sleep 3
+
 # the money shot (again) . If this works it's all working
 echo 'pgbouncer connection to Postgres using client cert and named users'
 psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full sslcert=larry.crt sslkey=larry.key sslrootcert=root.crt" -c "select ssl_is_used()"
@@ -150,6 +156,7 @@ echo "auth_query = select * from auth_user_info(\$1)" >> bouncer.ini
 pg_ctl -s -D testdb -l logfile reload
 kill `cat pgbouncer.pid`
 pgbouncer -d bouncer.ini
+sleep 3
 
 echo 'pgbouncer connection to Postgres using client cert and auth_query'
 psql "host=localhost port=6543 dbname=postgres user=larry sslmode=verify-full sslcert=larry.crt sslkey=larry.key sslrootcert=root.crt" -c "select ssl_is_used()"
@@ -166,6 +173,7 @@ sed -i 's/client_tls_sslmode.*/client_tls_sslmode = prefer/' bouncer.ini
 sed '/client_tls.*/d' bouncer.ini > bouncer-no-client-tls.ini
 
 pgbouncer -d bouncer-no-client-tls.ini
+sleep 3
 
 echo "pgbouncer connection to Postgres via pgbouncer using $auth_method and auth_query, no client_tls"
 psql "host=localhost port=6543 dbname=postgres user=larry password=bar sslmode=disable" -c "select ssl_is_used()"
@@ -173,6 +181,7 @@ psql "host=localhost port=6543 dbname=postgres user=larry password=bar sslmode=d
 kill `cat pgbouncer.pid`
 
 pgbouncer -d bouncer.ini
+sleep 3
 
 echo "pgbouncer connection to Postgres via pgbouncer using ssl + $auth_method and auth_query"
 psql "host=localhost port=6543 dbname=postgres user=larry password=bar sslmode=verify-full sslrootcert=root.crt" -c "select ssl_is_used()"

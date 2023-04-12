@@ -3,8 +3,6 @@
 
 # the simple-client cert is different in that
 # . it is signed with the root CA cert
-# . no PKCS#8 key is generated
-
 
 . ./common.sh
 
@@ -22,9 +20,11 @@ if [ "X$arg" = "X-k" ]
 then
 	cpass=`openssl rand -hex 10`
 	reqarg="-passout pass:$cpass"
+	pkcs8arg="-passin pass:$cpass -passout pass:$cpass"
 	echo Using password $cpass
 else
 	reqarg="-nodes"
+	pkcs8arg="-passout pass:"
 fi
 
 # get the root CA certificate
@@ -49,3 +49,6 @@ openssl ca -in simple-client.csr  \
 # remove the CSR
 rm simple-client.csr
 
+# generate the PKCS#8 version of the client key for jdbc use
+openssl pkcs8 -topk8 $pkcs8arg -inform PEM -in client.key \
+		-outform DER  -out simple-client.pk8

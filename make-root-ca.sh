@@ -9,7 +9,16 @@ rm -rf cadir
 mkdir cadir
 cd cadir
 DIR=`pwd`
-cp /etc/pki/tls/openssl.cnf .
+if [ -e /etc/pki/tls/openssl.cnf ]
+then
+	cp /etc/pki/tls/openssl.cnf .
+elif [ -e /etc/ssl/openssl.cnf ]
+then
+	cp /etc/ssl/openssl.cnf .
+else
+	echo "no openssl.cnf found" 2>&1
+	exit 1
+fi
 sed -i -e "s,^dir.*,dir = $DIR," -e 's/#unique_subject/unique_subject/' \
        openssl.cnf
 # this is required for SANs

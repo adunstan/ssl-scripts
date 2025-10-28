@@ -155,6 +155,7 @@ echo "auth_query = select * from auth_user_info(\$1)" >> bouncer.ini
 
 pg_ctl -s -D testdb -l logfile reload
 kill `cat pgbouncer.pid`
+sleep 3
 pgbouncer -d bouncer.ini
 sleep 3
 
@@ -172,6 +173,8 @@ sed -i 's/client_tls_sslmode.*/client_tls_sslmode = prefer/' bouncer.ini
 
 sed '/client_tls.*/d' bouncer.ini > bouncer-no-client-tls.ini
 
+kill `cat pgbouncer.pid`
+sleep 3
 pgbouncer -d bouncer-no-client-tls.ini
 sleep 3
 
@@ -179,7 +182,7 @@ echo "pgbouncer connection to Postgres via pgbouncer using $auth_method and auth
 psql "host=localhost port=6543 dbname=postgres user=larry password=bar sslmode=disable" -c "select ssl_is_used()"
 
 kill `cat pgbouncer.pid`
-
+sleep 3
 pgbouncer -d bouncer.ini
 sleep 3
 
